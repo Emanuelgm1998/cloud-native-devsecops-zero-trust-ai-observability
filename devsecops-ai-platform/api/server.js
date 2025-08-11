@@ -1,30 +1,24 @@
 import express from "express";
-import cors from "cors";
 import helmet from "helmet";
-import axios from "axios";
+import morgan from "morgan";
 
 const app = express();
-app.use(express.json());
-app.use(cors());
-app.use(helmet({
-  crossOriginOpenerPolicy: { policy: "same-origin" },
-  crossOriginResourcePolicy: { policy: "same-origin" },
-  referrerPolicy: { policy: "no-referrer" }
-}));
-
 const PORT = process.env.PORT || 3000;
-const AI_URL = process.env.AI_URL || "http://localhost:5000";
 
-app.get("/", (_req, res) => res.send("✅ API Node corriendo"));
-app.get("/status", (_req, res) => res.json({ status: "ok", service: "api", ts: Date.now() }));
+app.use(helmet({ contentSecurityPolicy: false }));
+app.use(morgan("tiny"));
+app.use(express.json());
 
-app.post("/detect", async (req, res) => {
-  try {
-    const { data } = await axios.post(`${AI_URL}/detect`, req.body, { timeout: 8000 });
-    res.json({ ok: true, source: "api", result: data });
-  } catch (e) {
-    res.status(502).json({ ok: false, error: e?.message || "AI upstream error" });
-  }
+app.get("/", (_req, res) => {
+  res.json({ service: "api", status: "ok", message: "DevSecOps API up", health: "/health" });
 });
 
-app.listen(PORT, () => console.log(`API escuchando en :${PORT}`));
+app.get("/health", (_req, res) => {
+  res.status(200).json({ status: "healthy" });
+});
+
+app.use((req, res) => {
+  res.status(404).json({ error: "Not found", path: req.path });
+});
+
+app.listen(PORT, () => console.log(`API listening on http://0.0.0.0:${PORT}`));

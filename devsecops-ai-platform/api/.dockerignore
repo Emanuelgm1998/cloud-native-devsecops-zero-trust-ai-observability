@@ -1,7 +1,6 @@
-.git
 node_modules
 npm-debug.log*
+.yarn
 dist
-.env
-__pycache__/
-ai/.venv
+build
+.DS_Store

@@ -1,8 +1,8 @@
-FROM python:3.10-slim
+FROM python:3.11-slim
 WORKDIR /app
-ENV PIP_NO_CACHE_DIR=1
+ENV PYTHONUNBUFFERED=1 PIP_NO_CACHE_DIR=1
+COPY requirements.txt .
+RUN pip install -r requirements.txt
 COPY . .
-RUN python -m pip install --upgrade pip && \
-    pip install flask scikit-learn pandas numpy
 EXPOSE 5000
-CMD ["python", "anomaly_detector.py"]
+CMD ["python", "app.py"]
