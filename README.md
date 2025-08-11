@@ -40,7 +40,7 @@ A production-ready, minimal platform composed of two independent, health-checked
 │ ├── ai_restart.sh # Stops, builds, and starts services
 │ ├── verify.sh # Verifies API and AI endpoints
 │ ├── verify_all.sh # Alias to verify.sh
-│ └── run_tests.sh # Full automated tests (optional)
+│ └── run_tests.sh # Full automated tests
 ├── docker-compose.yml
 ├── .env.example
 ├── .env
@@ -117,21 +117,39 @@ API_PORT_HOST=5858   # API:  host:API_PORT_HOST → container:3000
 AI_PORT_HOST=5859    # AI:   host:AI_PORT_HOST  → container:5000
 If a port is in use, the start script will prompt you to change it.
 
-🧪 Local Tests
-Run all tests:
+✅ Verification After Deployment
+Once the platform is running, you can validate that all services and healthchecks are functioning correctly by running:
 
 bash
 Copiar
 Editar
 ./scripts/run_tests.sh
-Verifies:
+What this does:
 
-/ and /health endpoints for both API and AI
+Checks API (/ and /health)
 
-404 responses for invalid routes
+Checks AI (/ and /health)
 
-Docker healthchecks in healthy state
+Confirms both services return 404 for invalid routes
 
+Ensures Docker healthchecks are in a healthy state
+
+Expected output:
+
+scss
+Copiar
+Editar
+✅ API OK (/, /health, 404)
+✅ AI OK (/, /health, 404)
+✅ Healthchecks Docker OK
+🎉 All tests passed.
+If any test fails, review the logs for the corresponding service:
+
+bash
+Copiar
+Editar
+docker compose logs -f api
+docker compose logs -f ai
 📋 Logs & Monitoring
 Check service status:
 
@@ -165,3 +183,5 @@ docker compose down --remove-orphans
 docker system prune -f
 📜 License
 MIT — Free to use and modify
+
+
