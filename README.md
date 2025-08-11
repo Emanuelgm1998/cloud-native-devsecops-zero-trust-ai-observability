@@ -165,10 +165,18 @@ Editar
 docker compose logs -f api
 docker compose logs -f ai
 🛠 Troubleshooting
-Port in use → change .env values and rerun ./scripts/ai_restart.sh
+Port in use → change .env values and rerun:
 
-Healthcheck failing → inspect logs for the failing service
+bash
+Copiar
+Editar
+./scripts/ai_restart.sh
+Healthcheck failing → inspect logs for the failing service:
 
+bash
+Copiar
+Editar
+docker compose logs -f <service_name>
 Missing jq/lsof → install manually:
 
 bash
@@ -183,5 +191,3 @@ docker compose down --remove-orphans
 docker system prune -f
 📜 License
 MIT — Free to use and modify
-
-
