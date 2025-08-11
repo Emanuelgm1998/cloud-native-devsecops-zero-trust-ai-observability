@@ -1,0 +1,26 @@
+flowchart LR
+  subgraph Client
+    Browser[Usuario / Navegador]
+  end
+
+  subgraph Codespaces["GitHub Codespaces (Dev)"]
+    subgraph K8s["k3d Kubernetes Cluster"]
+      istio[Istio Ingress/Gateway]
+      api[API Service (Node/Express)]
+      fe[Frontend Service (Node/Express)]
+      subgraph Observability["Observabilidad"]
+        prom[Prometheus]
+        graf[Grafana]
+        loki[Loki (logs)]
+      end
+    end
+  end
+
+  Browser -->|HTTPS (túnel)| istio
+  istio --> fe
+  istio --> api
+  api --> prom
+  fe  --> prom
+  api --> loki
+  fe  --> loki
+  graf --> Browser
