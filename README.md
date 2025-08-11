@@ -6,7 +6,7 @@ A production-ready, minimal platform composed of two independent, health-checked
 - **AI** → Flask + Gunicorn (internal port `5000`, exposed to host via `AI_PORT_HOST`, default `5859`)
 
 **Features:**
-- Docker Compose v3.9 orchestration
+- Docker Compose orchestration
 - Automatic healthchecks
 - Service start and verification scripts
 - Configurable ports via `.env`
@@ -118,7 +118,7 @@ AI_PORT_HOST=5859    # AI:   host:AI_PORT_HOST  → container:5000
 If a port is in use, the start script will prompt you to change it.
 
 ✅ Verification After Deployment
-Once the platform is running, you can validate that all services and healthchecks are functioning correctly by running:
+Once the platform is running, validate that all services and healthchecks work:
 
 bash
 Copiar
@@ -130,9 +130,9 @@ Checks API (/ and /health)
 
 Checks AI (/ and /health)
 
-Confirms both services return 404 for invalid routes
+Verifies 404 on invalid routes
 
-Ensures Docker healthchecks are in a healthy state
+Ensures Docker healthchecks are healthy
 
 Expected output:
 
@@ -143,7 +143,7 @@ Editar
 ✅ AI OK (/, /health, 404)
 ✅ Healthchecks Docker OK
 🎉 All tests passed.
-If any test fails, review the logs for the corresponding service:
+If any test fails:
 
 bash
 Copiar
@@ -171,7 +171,7 @@ bash
 Copiar
 Editar
 ./scripts/ai_restart.sh
-Healthcheck failing → inspect logs for the failing service:
+Healthcheck failing → inspect logs:
 
 bash
 Copiar
