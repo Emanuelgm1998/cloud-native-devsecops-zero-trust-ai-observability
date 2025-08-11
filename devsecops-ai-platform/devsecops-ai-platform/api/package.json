@@ -1,0 +1,17 @@
+{
+  "name": "devsecops-ai-api",
+  "version": "1.0.0",
+  "description": "Microservicio API Node.js para DevSecOps AI Platform",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "axios": "^1.7.4",
+    "cors": "^2.8.5",
+    "express": "^4.19.2",
+    "helmet": "^7.1.0"
+  }
+}
