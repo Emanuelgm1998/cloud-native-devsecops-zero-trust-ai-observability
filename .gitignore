@@ -1,11 +1,13 @@
+# Node & Python
 node_modules/
-**/node_modules/
-**/.venv/
-**/__pycache__/
-**/*.py[cod]
-*.log
-*.out
-*.pid
-.backup_*/
+__pycache__/
+*.pyc
+*.pyo
+
+# Env & OS
+.env
+.env.*
 .DS_Store
-*.swp
+
+# Docker
+*.log

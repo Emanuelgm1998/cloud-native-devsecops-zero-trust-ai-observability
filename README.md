@@ -1,40 +1,167 @@
-# 🌐 Cloud-Native DevSecOps Platform with Zero Trust & AI Observability
+# Cloud-Native DevSecOps Platform — Zero Trust & AI Observability
 
-A **production-grade microservices platform** built with **Node.js** (API) and **Python Flask** (AI service), orchestrated via **Docker Compose**.  
-Designed with **Zero Trust principles**, featuring **health checks**, and ready for **GitHub Codespaces**, local development, or cloud deployment.
+A production-ready, minimal platform composed of two independent, health-checked services:
+
+- **API** → Node.js + Express + Helmet (internal port `3000`, exposed to host via `API_PORT_HOST`, default `5858`)
+- **AI** → Flask + Gunicorn (internal port `5000`, exposed to host via `AI_PORT_HOST`, default `5859`)
+
+**Features:**
+- Docker Compose v3.9 orchestration
+- Automatic healthchecks
+- Service start and verification scripts
+- Configurable ports via `.env`
+- Optimized `.dockerignore` and `.gitignore`
+- Quick local tests with `curl` + `jq`
 
 ---
 
-## 🚀 Features
-- **API** → Node.js + Express + Helmet
-- **AI** → Python + Flask
-- **Health checks** on `/health` endpoints
-- **Docker Compose orchestration**
-- **Configurable ports** via `.env`
-- **Automation scripts** for restart and verification
+## 📦 Prerequisites
+
+- **Docker** and **Docker Compose**
+- `jq` and `lsof` (auto-installed by start script if missing)
+- Linux, macOS, or WSL2 (Windows)
 
 ---
 
-## ⚙️ Setup & Activation
+## 📂 Project Structure
 
-Run the following commands from the project root to start the entire platform:
+.
+├── api/
+│ ├── Dockerfile
+│ ├── package.json
+│ ├── server.js
+│ └── .dockerignore
+├── ai/
+│ ├── Dockerfile
+│ ├── requirements.txt
+│ ├── app.py
+│ └── .dockerignore
+├── scripts/
+│ ├── ai_restart.sh # Stops, builds, and starts services
+│ ├── verify.sh # Verifies API and AI endpoints
+│ ├── verify_all.sh # Alias to verify.sh
+│ └── run_tests.sh # Full automated tests (optional)
+├── docker-compose.yml
+├── .env.example
+├── .env
+├── .gitignore
+└── README.md
 
+yaml
+Copiar
+Editar
+
+---
+
+## 🚀 Quick Start
+
+### 1) Clone and configure
 ```bash
-# 1. Navigate to the platform directory
-cd devsecops-ai-platform
-
-# 2. Copy the environment variables file (only if .env doesn't exist)
-cp .env.example .env
-
-# 3. Start the platform
+git clone <REPO_URL>
+cd <REPO_NAME>
+cp -n .env.example .env
+2) Start the platform
+bash
+Copiar
+Editar
 ./scripts/ai_restart.sh
+This script will:
 
-# 4. Verify that both services are healthy
+Stop previous containers
+
+Check for free ports
+
+Rebuild images (--no-cache)
+
+Start api and ai in detached mode
+
+Display status and URLs
+
+3) Verify services
+bash
+Copiar
+Editar
 ./scripts/verify.sh
+Expected output:
 
+bash
+Copiar
+Editar
 ✅ API / OK
 ✅ API /health OK
 ✅ AI / OK
 ✅ AI /health OK
-🎉 Todo OK
- 
+🎉 All OK
+🌐 Available Endpoints
+API (Node.js)
+GET / → { service: "api", status: "ok", ... }
+
+GET /health → { status: "healthy" }
+
+GET /<non_existing_route> → 404 JSON
+
+AI (Flask)
+GET / → { service: "ai", status: "ok", ... }
+
+GET /health → { status: "healthy" }
+
+GET /<non_existing_route> → 404 JSON
+
+⚙️ Port Configuration
+Edit .env:
+
+env
+Copiar
+Editar
+API_PORT_HOST=5858   # API:  host:API_PORT_HOST → container:3000
+AI_PORT_HOST=5859    # AI:   host:AI_PORT_HOST  → container:5000
+If a port is in use, the start script will prompt you to change it.
+
+🧪 Local Tests
+Run all tests:
+
+bash
+Copiar
+Editar
+./scripts/run_tests.sh
+Verifies:
+
+/ and /health endpoints for both API and AI
+
+404 responses for invalid routes
+
+Docker healthchecks in healthy state
+
+📋 Logs & Monitoring
+Check service status:
+
+bash
+Copiar
+Editar
+docker compose ps
+View logs:
+
+bash
+Copiar
+Editar
+docker compose logs -f api
+docker compose logs -f ai
+🛠 Troubleshooting
+Port in use → change .env values and rerun ./scripts/ai_restart.sh
+
+Healthcheck failing → inspect logs for the failing service
+
+Missing jq/lsof → install manually:
+
+bash
+Copiar
+Editar
+sudo apt-get update -y && sudo apt-get install -y jq lsof
+🧹 Cleanup
+bash
+Copiar
+Editar
+docker compose down --remove-orphans
+docker system prune -f
+📜 License
+MIT — Free to use and modify
