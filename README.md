@@ -189,5 +189,11 @@ Copiar
 Editar
 docker compose down --remove-orphans
 docker system prune -f
-📜 License
-MIT — Free to use and modify
+
+
+
+👨‍💻 Autor
+© 2025 Emanuel — Licencia MIT
+
+🌐 LinkedIn
+https://www.linkedin.com/in/emanuel-gonzalez-michea/
