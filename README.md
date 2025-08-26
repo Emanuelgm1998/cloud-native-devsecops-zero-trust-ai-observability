@@ -1,199 +1,258 @@
-# Cloud-Native DevSecOps Platform — Zero Trust & AI Observability
+# 🛡️ Cloud‑Native DevSecOps Platform — Zero Trust & AI Observability
 
-A production-ready, minimal platform composed of two independent, health-checked services:
+> Plataforma **mínima y lista para producción** que orquesta dos servicios independientes con **salud verificada**, prácticas **Zero Trust**, y **observabilidad**. Incluye scripts de arranque y verificación, healthchecks Docker y configuración por `.env`.
 
-- **API** → Node.js + Express + Helmet (internal port `3000`, exposed to host via `API_PORT_HOST`, default `5858`)
-- **AI** → Flask + Gunicorn (internal port `5000`, exposed to host via `AI_PORT_HOST`, default `5859`)
-
-**Features:**
-- Docker Compose orchestration
-- Automatic healthchecks
-- Service start and verification scripts
-- Configurable ports via `.env`
-- Optimized `.dockerignore` and `.gitignore`
-- Quick local tests with `curl` + `jq`
+<p align="left">
+  <img alt="License" src="https://img.shields.io/badge/license-MIT-black">
+  <img alt="Docker" src="https://img.shields.io/badge/docker-compose-blue">
+  <img alt="ZeroTrust" src="https://img.shields.io/badge/security-zero%20trust-important">
+</p>
 
 ---
 
-## 📦 Prerequisites
+## 📦 Componentes
 
-- **Docker** and **Docker Compose**
-- `jq` and `lsof` (auto-installed by start script if missing)
-- Linux, macOS, or WSL2 (Windows)
+* **API** → Node.js + Express + Helmet
+  *Puerto interno*: `3000`  ·  *Expuesto al host*: `API_PORT_HOST` (por defecto **5858**)
+* **AI** → Flask + Gunicorn
+  *Puerto interno*: `5000`  ·  *Expuesto al host*: `AI_PORT_HOST` (por defecto **5859**)
+
+> Los servicios son **independientes**, con healthchecks y rutas 404 controladas.
 
 ---
 
-## 📂 Project Structure
+## 🧭 Arquitectura (visión rápida)
 
+```mermaid
+flowchart LR
+  user[Cliente / Dev] -->|HTTP| api[(API :3000)]
+  user -->|HTTP| ai[(AI :5000)]
+  subgraph Docker Compose
+    api --- ai
+  end
+  api -->|/health| HC1[Healthcheck]
+  ai  -->|/health| HC2[Healthcheck]
+```
+
+---
+
+## ✨ Features
+
+* **Docker Compose** para orquestación local
+* **Healthchecks automáticos** (Docker + endpoints)
+* **Scripts** de inicio y verificación (arranque idempotente, chequeo de puertos, logs)
+* **Puertos configurables** vía `.env`
+* **.dockerignore** y **.gitignore** optimizados
+* **Pruebas rápidas** con `curl` + `jq`
+
+---
+
+## 📂 Estructura del proyecto
+
+```
 .
 ├── api/
-│ ├── Dockerfile
-│ ├── package.json
-│ ├── server.js
-│ └── .dockerignore
+│  ├── Dockerfile
+│  ├── package.json
+│  ├── server.js
+│  └── .dockerignore
 ├── ai/
-│ ├── Dockerfile
-│ ├── requirements.txt
-│ ├── app.py
-│ └── .dockerignore
+│  ├── Dockerfile
+│  ├── requirements.txt
+│  ├── app.py
+│  └── .dockerignore
 ├── scripts/
-│ ├── ai_restart.sh # Stops, builds, and starts services
-│ ├── verify.sh # Verifies API and AI endpoints
-│ ├── verify_all.sh # Alias to verify.sh
-│ └── run_tests.sh # Full automated tests
+│  ├── ai_restart.sh       # Detiene, construye y arranca servicios
+│  ├── verify.sh           # Verifica endpoints API y AI
+│  ├── verify_all.sh       # Alias de verify.sh
+│  └── run_tests.sh        # Tests completos (health + 404 + estado Docker)
 ├── docker-compose.yml
 ├── .env.example
-├── .env
+├── .env                   # (ignorado en git)
 ├── .gitignore
 └── README.md
+```
 
-yaml
-Copiar
-Editar
+---
+
+## ✅ Requisitos
+
+* **Docker** y **Docker Compose**
+* **jq** y **lsof**
+  *El script `ai_restart.sh` intentará instalarlos si faltan (Linux).*
+* **Linux / macOS / WSL2 (Windows)**
 
 ---
 
 ## 🚀 Quick Start
 
-### 1) Clone and configure
+### 1) Clona y configura
+
 ```bash
 git clone <REPO_URL>
 cd <REPO_NAME>
 cp -n .env.example .env
-2) Start the platform
-bash
-Copiar
-Editar
+```
+
+### 2) Arranca la plataforma
+
+```bash
 ./scripts/ai_restart.sh
-This script will:
+```
 
-Stop previous containers
+Este script:
 
-Check for free ports
+* Detiene contenedores previos
+* Verifica puertos libres (y sugiere cambios si hay conflicto)
+* Reconstruye imágenes (`--no-cache`)
+* Arranca **api** y **ai** en segundo plano
+* Muestra **estado** y **URLs**
 
-Rebuild images (--no-cache)
+### 3) Verifica servicios
 
-Start api and ai in detached mode
-
-Display status and URLs
-
-3) Verify services
-bash
-Copiar
-Editar
+```bash
 ./scripts/verify.sh
-Expected output:
+```
 
-bash
-Copiar
-Editar
+**Salida esperada:**
+
+```
 ✅ API / OK
 ✅ API /health OK
 ✅ AI / OK
 ✅ AI /health OK
 🎉 All OK
-🌐 Available Endpoints
-API (Node.js)
-GET / → { service: "api", status: "ok", ... }
+```
 
-GET /health → { status: "healthy" }
+---
 
-GET /<non_existing_route> → 404 JSON
+## 🌐 Endpoints disponibles
 
-AI (Flask)
-GET / → { service: "ai", status: "ok", ... }
+### API (Node.js)
 
-GET /health → { status: "healthy" }
+* `GET /` → `{ service: "api", status: "ok", ... }`
+* `GET /health` → `{ status: "healthy" }`
+* `GET /<ruta_inexistente>` → `404` (JSON controlado)
 
-GET /<non_existing_route> → 404 JSON
+### AI (Flask)
 
-⚙️ Port Configuration
-Edit .env:
+* `GET /` → `{ service: "ai", status: "ok", ... }`
+* `GET /health` → `{ status: "healthy" }`
+* `GET /<ruta_inexistente>` → `404` (JSON controlado)
 
-env
-Copiar
-Editar
-API_PORT_HOST=5858   # API:  host:API_PORT_HOST → container:3000
-AI_PORT_HOST=5859    # AI:   host:AI_PORT_HOST  → container:5000
-If a port is in use, the start script will prompt you to change it.
+---
 
-✅ Verification After Deployment
-Once the platform is running, validate that all services and healthchecks work:
+## ⚙️ Configuración de puertos
 
-bash
-Copiar
-Editar
+Edita `.env`:
+
+| Variable        | Descripción     | Valor por defecto |
+| --------------- | --------------- | ----------------- |
+| `API_PORT_HOST` | Host → API:3000 | `5858`            |
+| `AI_PORT_HOST`  | Host → AI:5000  | `5859`            |
+
+Si un puerto está en uso, `ai_restart.sh` te pedirá cambiarlo.
+
+---
+
+## 🧪 Verificación post‑deploy
+
+Ejecuta pruebas completas:
+
+```bash
 ./scripts/run_tests.sh
-What this does:
+```
 
-Checks API (/ and /health)
+**Qué valida:**
 
-Checks AI (/ and /health)
+* API (`/`, `/health`, `404`)
+* AI  (`/`, `/health`, `404`)
+* **Healthchecks Docker** en estado `healthy`
 
-Verifies 404 on invalid routes
+**Salida esperada:**
 
-Ensures Docker healthchecks are healthy
-
-Expected output:
-
-scss
-Copiar
-Editar
+```
 ✅ API OK (/, /health, 404)
 ✅ AI OK (/, /health, 404)
 ✅ Healthchecks Docker OK
 🎉 All tests passed.
-If any test fails:
+```
 
-bash
-Copiar
-Editar
-docker compose logs -f api
-docker compose logs -f ai
-📋 Logs & Monitoring
-Check service status:
+---
 
-bash
-Copiar
-Editar
-docker compose ps
-View logs:
+## 📜 Logs & Monitoring
 
-bash
-Copiar
-Editar
-docker compose logs -f api
-docker compose logs -f ai
-🛠 Troubleshooting
-Port in use → change .env values and rerun:
+* Estado de servicios:
+  `docker compose ps`
+* Logs en vivo:
+  `docker compose logs -f api`
+  `docker compose logs -f ai`
 
-bash
-Copiar
-Editar
-./scripts/ai_restart.sh
-Healthcheck failing → inspect logs:
+---
 
-bash
-Copiar
-Editar
-docker compose logs -f <service_name>
-Missing jq/lsof → install manually:
+## 🧯 Troubleshooting
 
-bash
-Copiar
-Editar
-sudo apt-get update -y && sudo apt-get install -y jq lsof
-🧹 Cleanup
-bash
-Copiar
-Editar
+* **Puerto en uso** → cambia `.env` y re‑ejecuta:
+  `./scripts/ai_restart.sh`
+* **Healthcheck fallando** → inspecciona logs:
+  `docker compose logs -f <service>`
+* **Falta jq/lsof** → instala manualmente:
+  `sudo apt-get update -y && sudo apt-get install -y jq lsof`
+
+---
+
+## 🛡️ Zero Trust & DevSecOps (prácticas)
+
+* **API** con **Helmet** (CSP/referrer/dnsPrefetch) y manejo de 404/errores controlados
+* **Límites de exposición**: puertos solo los necesarios; variables via `.env` (no secretos en git)
+* **Imágenes Docker** minimalistas; añade escaneo con **Trivy** en CI
+* **SAST recomendado**: **CodeQL** para JS/Python
+* **Política**: listas para añadir OIDC/JWT, RBAC/ABAC y mTLS según entorno
+
+> Revisa `api/` y `ai/` para endurecimiento adicional (headers, timeouts, logs estructurados).
+
+---
+
+## 🧰 Snippets útiles
+
+### Probar rápido con `curl` + `jq`
+
+```bash
+curl -s http://localhost:${API_PORT_HOST:-5858}/health | jq .
+curl -s http://localhost:${AI_PORT_HOST:-5859}/health  | jq .
+```
+
+### Ver 404 controlado
+
+```bash
+curl -si http://localhost:${API_PORT_HOST:-5858}/does-not-exist | head -n 1
+curl -si http://localhost:${AI_PORT_HOST:-5859}/does-not-exist  | head -n 1
+```
+
+---
+
+## 🧹 Limpieza
+
+```bash
 docker compose down --remove-orphans
 docker system prune -f
+```
 
+---
 
+## 🗺️ Roadmap (sugerido)
 
-👨‍💻 Autor
-© 2025 Emanuel — Licencia MIT
+* [ ] **OpenTelemetry** (trazas/metricas/logs) y dashboards
+* [ ] **Rate‑limiting** y **request‑timeouts** en API
+* [ ] **Pipeline CI/CD** con CodeQL + Trivy + SBOM (Syft)
+* [ ] **OPA/Gatekeeper** para policy‑as‑code (opcional)
+* [ ] **k6**/**Artillery** para performance y smoke tests
+* [ ] **OpenAPI**/Swagger para la API
 
-🌐 LinkedIn
-https://www.linkedin.com/in/emanuel-gonzalez-michea/
+---
+
+## 👤 Autor
+
+**© 2025 Emanuel** — Licencia **MIT**
+**LinkedIn:** [https://www.linkedin.com/in/emanuel-gonzalez-michea/](https://www.linkedin.com/in/emanuel-gonzalez-michea/)
+
