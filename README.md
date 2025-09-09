@@ -1,9 +1,9 @@
 🛡️ Zero Trust AI Observability Lab — Cloud-Native DevSecOps
-Laboratorio integral para desplegar un stack de observabilidad con enfoque Zero Trust, usando un único script (star.sh). Incluye métricas, logs, trazas distribuidas, healthchecks, escaneo de seguridad y proxy seguro con TLS + BasicAuth.
+Laboratorio integral para desplegar un stack de observabilidad con enfoque Zero Trust, utilizando un único script (star.sh). Este entorno incluye métricas, logs, trazas distribuidas, healthchecks, escaneo de seguridad y proxy seguro con TLS + BasicAuth.
 
 <p align="left"> <img alt="License" src="https://img.shields.io/badge/license-MIT-black"> <img alt="Docker" src="https://img.shields.io/badge/docker-compose-blue"> <img alt="ZeroTrust" src="https://img.shields.io/badge/security-zero%20trust-important"> <img alt="Observability" src="https://img.shields.io/badge/stack-grafana%2Fprometheus%2Floki%2Ftempo-success"> </p>
 
-📦 Componentes
+📦 Componentes Principales
 FastAPI App instrumentada con OpenTelemetry (:8000)
 
 Nginx Proxy con TLS, BasicAuth y rate-limit (:8443)
@@ -14,22 +14,22 @@ Loki + Promtail para logs
 
 Tempo para trazas distribuidas
 
-Grafana como panel unificado
+Grafana como panel de visualización unificado
 
-🧭 Arquitectura
+🧭 Arquitectura del Sistema
 mermaid
 flowchart LR
-  user[Cliente/Dev] -->|HTTPS + Auth| nginx[(Nginx Proxy)]
-  nginx --> app[(FastAPI App)]
-  app -->|OTLP| otel[(OTEL Collector)]
-  otel --> prometheus[(Prometheus)]
-  otel --> loki[(Loki)]
-  otel --> tempo[(Tempo)]
-  prometheus --> grafana[(Grafana)]
+  user[👤 Cliente/Dev] -->|HTTPS + Auth| nginx[(🔐 Nginx Proxy)]
+  nginx --> app[(⚙️ FastAPI App)]
+  app -->|OTLP| otel[(📡 OTEL Collector)]
+  otel --> prometheus[(📊 Prometheus)]
+  otel --> loki[(📜 Loki)]
+  otel --> tempo[(🧵 Tempo)]
+  prometheus --> grafana[(📈 Grafana)]
   loki --> grafana
   tempo --> grafana
-✨ Funcionalidades
-🔧 Setup con ./star.sh up
+✨ Funcionalidades Clave
+🔧 Setup automatizado con ./star.sh up
 
 🔐 TLS + BasicAuth preconfigurados
 
@@ -41,19 +41,19 @@ flowchart LR
 
 🧹 Clean-up idempotente (./star.sh clean)
 
-📁 Estructura del proyecto
+📁 Estructura del Proyecto
 Código
 .
 ├── star.sh              # Script maestro
-├── docker-compose.yml   # Orquestación
-├── prometheus.yml       # Config Prometheus
-├── otel-collector.yaml  # Config OTEL
-├── nginx.conf           # Proxy seguro
-├── certs/               # TLS self-signed
+├── docker-compose.yml   # Orquestación de servicios
+├── prometheus.yml       # Configuración de Prometheus
+├── otel-collector.yaml  # Configuración de OTEL Collector
+├── nginx.conf           # Proxy seguro con TLS + Auth
+├── certs/               # Certificados TLS self-signed
 ├── app/                 # FastAPI instrumentada
-├── provisioning/        # Grafana datasources
+├── provisioning/        # Dashboards y datasources Grafana
 └── README.md
-✅ Requisitos
+✅ Requisitos Previos
 Docker + Docker Compose
 
 OpenSSL
@@ -68,31 +68,31 @@ chmod +x star.sh
 ./star.sh up
 ./star.sh status
 for i in {1..10}; do curl -k -u admin:admin https://localhost:8443/; done
-🌐 Endpoints
+🌐 Endpoints del Sistema
 Servicio	URL	Credenciales
 Grafana	localhost:3000	admin / admin
 Prometheus	localhost:9090	—
 Loki API	localhost:3100	—
 Tempo	localhost:3200	—
 App (HTTPS)	localhost:8443	admin / admin
-🔍 Verificación post-deploy
+🔍 Verificación Post-Deploy
 bash
 ./star.sh logs
 curl -k -u admin:admin https://localhost:8443/healthz
 # → {"status":"ok"}
-🔐 Zero Trust & DevSecOps
-TLS obligatorio (self-signed)
+🔐 Enfoque Zero Trust & DevSecOps
+✅ TLS obligatorio (certificados self-signed)
 
-BasicAuth para acceso inicial
+✅ Autenticación básica (BasicAuth)
 
-Rate-limit en Nginx
+✅ Rate-limit configurado en Nginx
 
-Escaneo Trivy para imágenes y configs
+✅ Escaneo de seguridad con Trivy
 
-Observabilidad 360°: métricas, logs, trazas
+✅ Observabilidad 360°: métricas, logs y trazas
 
-📄 Autor
-Desarrollado por Emanuel González Michea Cloud Architect | SysOps | DevSecOps & Observability
+👨‍💻 Autor
+Emanuel González Michea Cloud Architect · SysOps · DevSecOps · Observability Specialist 📎 GitHub · 🌐 LinkedIn
 
 ---
 
