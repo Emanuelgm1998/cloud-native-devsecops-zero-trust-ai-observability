@@ -1,23 +1,29 @@
-# 🛡️ Cloud‑Native DevSecOps Platform — Zero Trust & AI Observability
+Perfecto Emanuel 🙌, te armé un **README en la misma tipología que mostraste** (bloque único, badges arriba, secciones profesionales, mapa conceptual con `mermaid`). Lo puedes pegar directo en tu repo:
 
-> Plataforma **mínima y lista para producción** que orquesta dos servicios independientes con **salud verificada**, prácticas **Zero Trust**, y **observabilidad**. Incluye scripts de arranque y verificación, healthchecks Docker y configuración por `.env`.
+````markdown
+# 🛡️ Zero Trust AI Observability Lab — Cloud-Native DevSecOps
+
+> Laboratorio **mínimo pero completo**, que levanta un stack de **observabilidad** con prácticas **Zero Trust** usando un único script (`star.sh`). Incluye métricas, logs, trazas distribuidas, healthchecks Docker y un proxy seguro con TLS + BasicAuth.
 
 <p align="left">
   <img alt="License" src="https://img.shields.io/badge/license-MIT-black">
   <img alt="Docker" src="https://img.shields.io/badge/docker-compose-blue">
   <img alt="ZeroTrust" src="https://img.shields.io/badge/security-zero%20trust-important">
+  <img alt="Observability" src="https://img.shields.io/badge/stack-grafana%2Fprometheus%2Floki%2Ftempo-success">
 </p>
 
 ---
 
 ## 📦 Componentes
 
-* **API** → Node.js + Express + Helmet
-  *Puerto interno*: `3000`  ·  *Expuesto al host*: `API_PORT_HOST` (por defecto **5858**)
-* **AI** → Flask + Gunicorn
-  *Puerto interno*: `5000`  ·  *Expuesto al host*: `AI_PORT_HOST` (por defecto **5859**)
-
-> Los servicios son **independientes**, con healthchecks y rutas 404 controladas.
+* **App demo** → FastAPI instrumentada con OpenTelemetry  
+  *Puerto interno*: `8000`  
+* **Proxy** → Nginx con TLS self-signed + BasicAuth + rate-limit  
+  *Puerto expuesto*: `NGINX_HTTPS_PORT` (por defecto **8443**)  
+* **Prometheus** → Métricas de app y collector  
+* **Loki + Promtail** → Recolección de logs de contenedores  
+* **Tempo** → Almacenamiento de trazas distribuidas  
+* **Grafana** → Visualización unificada de métricas, logs y trazas  
 
 ---
 
@@ -25,25 +31,27 @@
 
 ```mermaid
 flowchart LR
-  user[Cliente / Dev] -->|HTTP| api[(API :3000)]
-  user -->|HTTP| ai[(AI :5000)]
-  subgraph Docker Compose
-    api --- ai
-  end
-  api -->|/health| HC1[Healthcheck]
-  ai  -->|/health| HC2[Healthcheck]
-```
+  user[Cliente/Dev] -->|HTTPS + Auth| nginx[(Nginx Proxy)]
+  nginx --> app[(FastAPI App)]
+  app -->|OTLP| otel[(OTEL Collector)]
+  otel --> prometheus[(Prometheus)]
+  otel --> loki[(Loki)]
+  otel --> tempo[(Tempo)]
+  prometheus --> grafana[(Grafana)]
+  loki --> grafana
+  tempo --> grafana
+````
 
 ---
 
 ## ✨ Features
 
-* **Docker Compose** para orquestación local
-* **Healthchecks automáticos** (Docker + endpoints)
-* **Scripts** de inicio y verificación (arranque idempotente, chequeo de puertos, logs)
-* **Puertos configurables** vía `.env`
-* **.dockerignore** y **.gitignore** optimizados
-* **Pruebas rápidas** con `curl` + `jq`
+* **One-command setup** con `./star.sh up`
+* **TLS + BasicAuth** preconfigurados (Zero Trust básico)
+* **Dashboards listos** vía Grafana provisioning
+* **Logs, métricas y trazas** conectados a un collector OTEL
+* **Escaneo de seguridad** integrado con Trivy (`./star.sh scan`)
+* **Clean-up idempotente** con `./star.sh clean`
 
 ---
 
@@ -51,25 +59,14 @@ flowchart LR
 
 ```
 .
-├── api/
-│  ├── Dockerfile
-│  ├── package.json
-│  ├── server.js
-│  └── .dockerignore
-├── ai/
-│  ├── Dockerfile
-│  ├── requirements.txt
-│  ├── app.py
-│  └── .dockerignore
-├── scripts/
-│  ├── ai_restart.sh       # Detiene, construye y arranca servicios
-│  ├── verify.sh           # Verifica endpoints API y AI
-│  ├── verify_all.sh       # Alias de verify.sh
-│  └── run_tests.sh        # Tests completos (health + 404 + estado Docker)
-├── docker-compose.yml
-├── .env.example
-├── .env                   # (ignorado en git)
-├── .gitignore
+├── star.sh              # Script maestro (genera config + orquesta stack)
+├── docker-compose.yml   # Orquestación de servicios
+├── prometheus.yml       # Config Prometheus
+├── otel-collector.yaml  # Config OTEL Collector
+├── nginx.conf           # Proxy con TLS + BasicAuth + rate-limit
+├── certs/               # Certificados self-signed (ignorado en git)
+├── app/                 # Demo app FastAPI instrumentada
+├── provisioning/        # Datasources Grafana
 └── README.md
 ```
 
@@ -77,182 +74,93 @@ flowchart LR
 
 ## ✅ Requisitos
 
-* **Docker** y **Docker Compose**
-* **jq** y **lsof**
-  *El script `ai_restart.sh` intentará instalarlos si faltan (Linux).*
-* **Linux / macOS / WSL2 (Windows)**
+* **Docker** + **Docker Compose plugin**
+* **OpenSSL** (para generar certificados)
+* **Linux / macOS / WSL2**
 
 ---
 
 ## 🚀 Quick Start
 
-### 1) Clona y configura
+### 1) Clona y entra
 
 ```bash
-git clone <REPO_URL>
-cd <REPO_NAME>
-cp -n .env.example .env
+git clone https://github.com/Emanuelgm1998/zero-trust-ai-observability-lab.git
+cd zero-trust-ai-observability-lab
 ```
 
-### 2) Arranca la plataforma
+### 2) Levanta el stack
 
 ```bash
-./scripts/ai_restart.sh
+chmod +x star.sh
+./star.sh up
 ```
 
-Este script:
-
-* Detiene contenedores previos
-* Verifica puertos libres (y sugiere cambios si hay conflicto)
-* Reconstruye imágenes (`--no-cache`)
-* Arranca **api** y **ai** en segundo plano
-* Muestra **estado** y **URLs**
-
-### 3) Verifica servicios
+### 3) Verifica estado
 
 ```bash
-./scripts/verify.sh
+./star.sh status
 ```
 
-**Salida esperada:**
+### 4) Genera tráfico de prueba
 
-```
-✅ API / OK
-✅ API /health OK
-✅ AI / OK
-✅ AI /health OK
-🎉 All OK
+```bash
+for i in {1..10}; do curl -k -u admin:admin https://localhost:8443/; done
 ```
 
 ---
 
 ## 🌐 Endpoints disponibles
 
-### API (Node.js)
-
-* `GET /` → `{ service: "api", status: "ok", ... }`
-* `GET /health` → `{ status: "healthy" }`
-* `GET /<ruta_inexistente>` → `404` (JSON controlado)
-
-### AI (Flask)
-
-* `GET /` → `{ service: "ai", status: "ok", ... }`
-* `GET /health` → `{ status: "healthy" }`
-* `GET /<ruta_inexistente>` → `404` (JSON controlado)
+| Servicio    | URL                                              | Credenciales  |
+| ----------- | ------------------------------------------------ | ------------- |
+| Grafana     | [http://localhost:3000](http://localhost:3000)   | admin / admin |
+| Prometheus  | [http://localhost:9090](http://localhost:9090)   | —             |
+| Loki API    | [http://localhost:3100](http://localhost:3100)   | —             |
+| Tempo       | [http://localhost:3200](http://localhost:3200)   | —             |
+| App (HTTPS) | [https://localhost:8443](https://localhost:8443) | admin / admin |
 
 ---
 
-## ⚙️ Configuración de puertos
+## 🧪 Verificación post-deploy
 
-Edita `.env`:
-
-| Variable        | Descripción     | Valor por defecto |
-| --------------- | --------------- | ----------------- |
-| `API_PORT_HOST` | Host → API:3000 | `5858`            |
-| `AI_PORT_HOST`  | Host → AI:5000  | `5859`            |
-
-Si un puerto está en uso, `ai_restart.sh` te pedirá cambiarlo.
-
----
-
-## 🧪 Verificación post‑deploy
-
-Ejecuta pruebas completas:
+Ejecuta pruebas rápidas:
 
 ```bash
-./scripts/run_tests.sh
+./star.sh logs
+curl -k -u admin:admin https://localhost:8443/healthz
 ```
-
-**Qué valida:**
-
-* API (`/`, `/health`, `404`)
-* AI  (`/`, `/health`, `404`)
-* **Healthchecks Docker** en estado `healthy`
 
 **Salida esperada:**
 
 ```
-✅ API OK (/, /health, 404)
-✅ AI OK (/, /health, 404)
-✅ Healthchecks Docker OK
-🎉 All tests passed.
+{"status":"ok"}
 ```
 
 ---
 
-## 📜 Logs & Monitoring
+## 🛡️ Zero Trust & DevSecOps
 
-* Estado de servicios:
-  `docker compose ps`
-* Logs en vivo:
-  `docker compose logs -f api`
-  `docker compose logs -f ai`
-
----
-
-## 🧯 Troubleshooting
-
-* **Puerto en uso** → cambia `.env` y re‑ejecuta:
-  `./scripts/ai_restart.sh`
-* **Healthcheck fallando** → inspecciona logs:
-  `docker compose logs -f <service>`
-* **Falta jq/lsof** → instala manualmente:
-  `sudo apt-get update -y && sudo apt-get install -y jq lsof`
+* **TLS obligatorio** (self-signed de ejemplo)
+* **BasicAuth** para acceso inicial
+* **Rate-limit** en Nginx (DoS básico)
+* **Escaneo Trivy** para imágenes y configs
+* **Observabilidad** 360°: métricas, logs, trazas
 
 ---
 
-## 🛡️ Zero Trust & DevSecOps (prácticas)
+## 📜 Autor
 
-* **API** con **Helmet** (CSP/referrer/dnsPrefetch) y manejo de 404/errores controlados
-* **Límites de exposición**: puertos solo los necesarios; variables via `.env` (no secretos en git)
-* **Imágenes Docker** minimalistas; añade escaneo con **Trivy** en CI
-* **SAST recomendado**: **CodeQL** para JS/Python
-* **Política**: listas para añadir OIDC/JWT, RBAC/ABAC y mTLS según entorno
-
-> Revisa `api/` y `ai/` para endurecimiento adicional (headers, timeouts, logs estructurados).
+Desarrollado por **[Emanuel González Michea](https://github.com/Emanuelgm1998)**
+Cloud Architect | SysOps | DevSecOps + Observability
 
 ---
 
-## 🧰 Snippets útiles
-
-### Probar rápido con `curl` + `jq`
-
-```bash
-curl -s http://localhost:${API_PORT_HOST:-5858}/health | jq .
-curl -s http://localhost:${AI_PORT_HOST:-5859}/health  | jq .
-```
-
-### Ver 404 controlado
-
-```bash
-curl -si http://localhost:${API_PORT_HOST:-5858}/does-not-exist | head -n 1
-curl -si http://localhost:${AI_PORT_HOST:-5859}/does-not-exist  | head -n 1
 ```
 
 ---
 
-## 🧹 Limpieza
+👉 Este README está **listo para producción** en GitHub: profesional, con badges, mapa conceptual en `mermaid`, secciones ordenadas y enfoque Cloud/DevSecOps.  
 
-```bash
-docker compose down --remove-orphans
-docker system prune -f
+¿Quieres que también te arme **un dashboard JSON preconfigurado para Grafana** (lo subes en `provisioning/dashboards`) de modo que al abrir Grafana ya aparezcan métricas, logs y trazas sin configurar nada?
 ```
-
----
-
-## 🗺️ Roadmap (sugerido)
-
-* [ ] **OpenTelemetry** (trazas/metricas/logs) y dashboards
-* [ ] **Rate‑limiting** y **request‑timeouts** en API
-* [ ] **Pipeline CI/CD** con CodeQL + Trivy + SBOM (Syft)
-* [ ] **OPA/Gatekeeper** para policy‑as‑code (opcional)
-* [ ] **k6**/**Artillery** para performance y smoke tests
-* [ ] **OpenAPI**/Swagger para la API
-
----
-
-## 👤 Autor
-
-**© 2025 Emanuel** — Licencia **MIT**
-**LinkedIn:** [https://www.linkedin.com/in/emanuel-gonzalez-michea/](https://www.linkedin.com/in/emanuel-gonzalez-michea/)
-
