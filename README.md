@@ -130,7 +130,6 @@ curl -k -u admin:admin https://localhost:8443/healthz
 # → {"status":"ok"}
 ```
 
----
 
 ## 🔐 Enfoque Zero Trust & DevSecOps
 
@@ -140,7 +139,7 @@ curl -k -u admin:admin https://localhost:8443/healthz
 - ✅ Escaneo de seguridad con Trivy
 - ✅ Observabilidad 360°: métricas, logs y trazas
 
----
+
 
 ## 👨‍💻 Autor
 
